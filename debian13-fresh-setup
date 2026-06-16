@@ -1,0 +1,119 @@
+#!/bin/bash
+# =============================================================================
+#   Debian 13 (Trixie) First-Time Setup Script
+#   Optimized for Cybersecurity Beginners (KDE)
+#   Author: muhammadtalha1322 (GitHub)
+#   Version: 2.1
+# =============================================================================
+
+set -e  # Exit immediately if any command fails
+
+# Logging
+LOGFILE="/var/log/debian13-setup.log"
+exec > >(tee -a "$LOGFILE") 2>&1
+
+echo "========================================================================"
+echo "   Debian 13 First-Time Professional Setup Script"
+echo "   Optimized for Cybersecurity Beginners (KDE)"
+echo "   Started at: $(date)"
+echo "   Author: muhammadtalha1322"
+echo "========================================================================"
+
+# Status functions
+print_status() {
+    echo "[+] $1"
+}
+
+print_success() {
+    echo "[OK] $1"
+}
+
+# 1. Configure Debian Repositories
+print_status "Step 1/7: Configuring repositories (main + contrib + non-free)..."
+sudo cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak 2>/dev/null || true
+
+sudo cat > /etc/apt/sources.list.d/debian.sources << 'EOF'
+Types: deb deb-src
+URIs: https://deb.debian.org/debian
+Suites: trixie trixie-updates
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb deb-src
+URIs: https://security.debian.org/debian-security
+Suites: trixie-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+EOF
+
+sudo apt update -y
+print_success "Repositories configured"
+
+# 2. System Update
+print_status "Step 2/7: Updating and upgrading the system..."
+sudo apt upgrade -y && sudo apt full-upgrade -y
+print_success "System updated successfully"
+
+# 3. Install Essential Packages
+print_status "Step 3/7: Installing essential tools..."
+sudo apt install -y \
+    curl wget git git-lfs \
+    python3 python3-pip python3-venv python3-dev \
+    build-essential \
+    nala \
+    vlc \
+    libreoffice \
+    firefox-esr \
+    gzip unzip p7zip-full p7zip-rar \
+    btop neofetch \
+    flatpak
+
+print_success "Essential packages installed"
+
+# 4. Flatpak + ZapZap
+print_status "Step 4/7: Installing ZapZap via Flatpak..."
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+flatpak install flathub com.rtosta.zapzap -y
+
+# KDE integration
+if [[ $XDG_CURRENT_DESKTOP == *"KDE"* ]]; then
+    sudo apt install -y plasma-discover-backend-flatpak
+fi
+
+print_success "ZapZap installed successfully"
+
+# 5. Firmware
+print_status "Step 5/7: Installing firmware packages..."
+sudo apt install -y firmware-linux firmware-linux-nonfree
+print_success "Firmware installed"
+
+# 6. Cleanup
+print_status "Step 6/7: System cleanup..."
+sudo apt autoremove -y && sudo apt autoclean -y
+print_success "Cleanup completed"
+
+# 7. Final Summary
+echo ""
+echo "========================================================================"
+echo "[OK] DEBIAN 13 SETUP COMPLETED SUCCESSFULLY!"
+echo "========================================================================"
+echo ""
+echo "Installed:"
+echo "   - Full repository support (contrib + non-free)"
+echo "   - Nala, btop, neofetch"
+echo "   - VLC, LibreOffice, Firefox ESR"
+echo "   - Python 3 + pip + venv"
+echo "   - Git, curl, wget, build-essential"
+echo "   - ZapZap (WhatsApp Desktop)"
+echo "   - Flatpak + Flathub"
+echo ""
+echo "Useful Commands:"
+echo "   nala --version"
+echo "   btop                  # Press q to quit"
+echo "   flatpak run com.rtosta.zapzap"
+echo ""
+echo "Log saved at: $LOGFILE"
+echo "Recommendation: Restart your system now."
+echo "========================================================================"
+
+read -p "Press Enter to exit..."
