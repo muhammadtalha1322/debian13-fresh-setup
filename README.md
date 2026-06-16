@@ -25,7 +25,7 @@ This script configures a clean, secure, and productive Debian environment with a
 
 ```bash
 # 1. Download the script
-wget https://raw.githubusercontent.com/muhammadtalha1322/debian13-cyber-setup/main/update_deb.sh
+wget https://raw.githubusercontent.com/muhammadtalha1322/debian13-fresh-setup/main/update_deb.sh
 
 # 2. Make it executable
 chmod +x update_deb.sh
