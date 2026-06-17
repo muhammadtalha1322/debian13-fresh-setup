@@ -2,13 +2,12 @@
 # =============================================================================
 #   Debian 13 (Trixie) First-Time Setup Script
 #   Optimized for Cybersecurity Beginners (KDE)
-#   Author: muhammadtalha1322 (GitHub)
-#   Version: 2.1
+#   Author: muhammadtalha1322 (original) + Grok fixes
+#   Version: 2.2 (Fixed)
 # =============================================================================
 
-set -e  # Exit immediately if any command fails
+set -e  # Exit on error
 
-# Logging
 LOGFILE="/var/log/debian13-setup.log"
 exec > >(tee -a "$LOGFILE") 2>&1
 
@@ -19,7 +18,6 @@ echo "   Started at: $(date)"
 echo "   Author: muhammadtalha1322"
 echo "========================================================================"
 
-# Status functions
 print_status() {
     echo "[+] $1"
 }
@@ -28,10 +26,16 @@ print_success() {
     echo "[OK] $1"
 }
 
-# 1. Configure Debian Repositories
+# 1. Clean up old sources first to prevent duplicate warnings
 print_status "Step 1/7: Configuring repositories (main + contrib + non-free)..."
-sudo cp /etc/apt/sources.list.d/debian.sources /etc/apt/sources.list.d/debian.sources.bak 2>/dev/null || true
 
+# Backup everything
+sudo cp -r /etc/apt/sources.list* /etc/apt/sources.list.bak_$(date +%F) 2>/dev/null || true
+
+# Remove old sources.list if it exists
+sudo rm -f /etc/apt/sources.list
+
+# Create clean debian.sources
 sudo cat > /etc/apt/sources.list.d/debian.sources << 'EOF'
 Types: deb deb-src
 URIs: https://deb.debian.org/debian
@@ -42,6 +46,12 @@ Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 Types: deb deb-src
 URIs: https://security.debian.org/debian-security
 Suites: trixie-security
+Components: main contrib non-free non-free-firmware
+Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
+
+Types: deb deb-src
+URIs: https://deb.debian.org/debian
+Suites: trixie-backports
 Components: main contrib non-free non-free-firmware
 Signed-By: /usr/share/keyrings/debian-archive-keyring.gpg
 EOF
@@ -56,6 +66,7 @@ print_success "System updated successfully"
 
 # 3. Install Essential Packages
 print_status "Step 3/7: Installing essential tools..."
+
 sudo apt install -y \
     curl wget git git-lfs \
     python3 python3-pip python3-venv python3-dev \
@@ -65,7 +76,7 @@ sudo apt install -y \
     libreoffice \
     firefox-esr \
     gzip unzip p7zip-full p7zip-rar \
-    btop neofetch \
+    btop fastfetch \
     flatpak
 
 print_success "Essential packages installed"
@@ -99,8 +110,8 @@ echo "[OK] DEBIAN 13 SETUP COMPLETED SUCCESSFULLY!"
 echo "========================================================================"
 echo ""
 echo "Installed:"
-echo "   - Full repository support (contrib + non-free)"
-echo "   - Nala, btop, neofetch"
+echo "   - Clean repositories (no more duplicate warnings)"
+echo "   - Nala, btop, fastfetch (neofetch replacement)"
 echo "   - VLC, LibreOffice, Firefox ESR"
 echo "   - Python 3 + pip + venv"
 echo "   - Git, curl, wget, build-essential"
@@ -109,7 +120,8 @@ echo "   - Flatpak + Flathub"
 echo ""
 echo "Useful Commands:"
 echo "   nala --version"
-echo "   btop                  # Press q to quit"
+echo "   btop                    # Press q to quit"
+echo "   fastfetch"
 echo "   flatpak run com.rtosta.zapzap"
 echo ""
 echo "Log saved at: $LOGFILE"
